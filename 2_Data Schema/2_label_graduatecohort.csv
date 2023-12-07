@@ -1,0 +1,12 @@
+grad_cohort,grad_cohort_years,cohort,label_grad_cohort,label_grad_cohort_years
+0,3,0+3,All Cohorts,Three year cohort
+0,5,0+5,All Cohorts,Five year cohort
+2001,3,2001+3,2001-2003,Three year cohort
+2001,5,2001+5,2001-2005,Five year cohort
+2004,3,2004+3,2004-2006,Three year cohort
+2006,5,2006+5,2006-2010,Five year cohort
+2007,3,2007+3,2007-2009,Three year cohort
+2010,3,2010+3,2010-2012,Three year cohort
+2011,5,2011+5,2011-2015,Five year cohort
+2013,3,2013+3,2013-2015,Three year cohort
+2016,3,2016+3,2016-2018,Three year cohort

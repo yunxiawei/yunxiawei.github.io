@@ -1,0 +1,85 @@
+
+---
+title: "Capstone data analysis"
+author: "Yunxia Wei"
+date: "2023-10-25"
+output: 
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE}
+library(readxl)
+library(tidyverse)
+```
+
+
+#Load all States Dataset
+```{r, warning=FALSE}
+data_frames <- list()
+file_paths <- list.files(path = "/Users/ywei/Desktop/Fall 2023/Capstone/Post-Secondary Employment Outcomes/Working folder/Wage Data/", pattern = "\\.xlsx$", full.names = TRUE)
+
+for (file_path in file_paths) {
+  df <- read_excel(file_path, skip = 5)  # Skip first 5 rows
+  data_frames <- append(data_frames, list(df))
+}
+```
+
+#Merge data files together
+```{r}
+combined_data <- do.call(rbind, data_frames) %>%
+            rename("institution_code" = "institution",
+                   "institution_name" = "label_institution",
+                   "institution_degreelevel" ="label_degree_level")%>%
+            mutate(institution_code = sub("^0+", "", institution_code))
+```
+
+#Load data from ipeds and rename variables
+```{r}
+ipeds_data <- read.csv("IPEDS Data/CSV_9252023-880.csv", stringsAsFactors = FALSE)%>%
+            rename("institution code" = "HD2022.Office.of.Postsecondary.Education..OPE..ID.Number",
+                   "longitude" = "HD2022.Longitude.location.of.institution",
+                   "latitude" = "HD2022.Latitude.location.of.institution",
+                   "12 month full-time enrollment" = "DRVEF122022.12.month.full.time.equivalent.enrollment",
+                   "completers total" = "C2022_B.Grand.total",
+                   "completers men" = "C2022_B.Grand.total.men",
+                   "completers women" = "C2022_B.Grand.total.women",
+                   "tuition and fees" = "DRVIC2022.Tuition.and.fees..2022.23",
+                   "institution size category" = "HD2022.Institution.size.category",
+                   "State abbreviation" ="HD2022.State.abbreviation",
+                   "Bureau of Economic Analysis regions" ="HD2022.Bureau.of.Economic.Analysis..BEA..regions",
+                   "Level of institution" = "HD2022.Level.of.institution",
+                   "Control of institution" = "HD2022.Control.of.institution",
+                   "Degree of urbanization" = "HD2022.Degree.of.urbanization..Urban.centric.locale.",
+                   "Degree granting status" = "HD2022.Degree.granting.status")
+```
+
+#Limit the selection(from wage_data) to institutions that are present in the IPEDS dataset
+```{r}
+wage_data_for_use <-combined_data%>%
+            mutate(in_ipeds = ifelse(institution_code%in%ipeds_data$`institution code`, "Yes","No"))%>%
+            filter(in_ipeds == "Yes")
+```
+
+#Limit the selection(from ipeds_data) to institutions that are present in the wage dataset
+```{r}
+ipeds_data_for_use <-ipeds_data%>%
+            mutate(in_wagedata = ifelse(`institution code`%in%wage_data_for_use$institution_code,"Yes","No"))%>%
+            filter(in_wagedata == "Yes")%>%
+            filter(check.duplicates == "keep")#The flag added in the CSV file identifies duplicate IDs with blank information
+```
+
+#Compare the wage data for use file and the IPEDS data for use file to verify if they have the same count of unique institutions
+```{r}
+unique_count_wage <- wage_data_for_use %>%
+            summarise(unique_institution_count = n_distinct(institution_code))
+unique_count_ipeds <- ipeds_data_for_use %>%
+            summarise(unique_institution_count = n_distinct(`institution code`))
+
+unique_count_wage
+unique_count_ipeds
+```
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
